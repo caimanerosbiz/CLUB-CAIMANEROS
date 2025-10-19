@@ -26,6 +26,7 @@
       <button data-view="payments">Pagos</button>
       <button data-view="messages">Mensajes</button>
       <button data-view="settings">Ajustes</button>
+      <button data-view="approvals">Aprobaciones</button>
     </nav>
     <main id="main">
       <section id="view-auth" class="view">
@@ -106,6 +107,13 @@
           <button id="export-btn">Exportar JSON</button>
           <input type="file" id="import-file" accept="application/json">
           <button id="import-btn">Importar JSON</button>
+          <hr>
+          <h3>Cambiar contraseña (usuario actual)</h3>
+          <form id="change-pass-form">
+            <input type="password" id="old-pass" placeholder="Contraseña actual" required>
+            <input type="password" id="new-pass" placeholder="Nueva contraseña" required>
+            <button type="submit">Cambiar contraseña</button>
+          </form>
           <hr>
           <button id="clear-data">Limpiar datos (borrar todo)</button>
         </div>

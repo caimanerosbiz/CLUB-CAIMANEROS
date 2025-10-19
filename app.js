@@ -1,6 +1,6 @@
 // Club Caimaneros - app.js (client-side only, stores data in localStorage)
 // Roles: admin, trainer, player
-const STORAGE_KEY = 'club_caimaneros_v2';
+const STORAGE_KEY = 'club_caimaneros_v3';
 let state = {
   users: [],
   athletes: [],
@@ -70,6 +70,7 @@ function bindUI(){
   document.getElementById('export-btn').addEventListener('click', ()=>{ const data = JSON.stringify(state,null,2); const blob = new Blob([data], {type:'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'club_caimaneros_export.json'; a.click(); URL.revokeObjectURL(url); });
   document.getElementById('import-btn').addEventListener('click', ()=>{ const f = document.getElementById('import-file').files[0]; if(!f) return alert('Selecciona archivo JSON'); const reader = new FileReader(); reader.onload = ()=>{ try{ const obj = JSON.parse(reader.result); state = obj; save(); alert('Importado'); refreshAll(); }catch(e){alert('JSON inválido')} }; reader.readAsText(f); });
   document.getElementById('clear-data').addEventListener('click', ()=>{ if(confirm('Borrar todos los datos?')){ localStorage.removeItem(STORAGE_KEY); location.reload(); } });
+  document.getElementById('change-pass-form').addEventListener('submit', e=>{ e.preventDefault(); if(!currentUser) return alert('Ingresa'); const oldp=document.getElementById('old-pass').value, newp=document.getElementById('new-pass').value; if(currentUser.password !== oldp) return alert('Contraseña actual incorrecta'); currentUser.password = newp; const u = state.users.find(x=>x.id===currentUser.id); if(u){ u.password=newp; save(); alert('Contraseña cambiada'); document.getElementById('old-pass').value=''; document.getElementById('new-pass').value=''; } });
 }
 
 function navigateAfterLogin(){ if(currentUser.role==='admin') { showView('dashboard'); renderDashboard(); } else if(currentUser.role==='trainer'){ showView('athletes'); renderAthletes(); } else { showView('profile'); renderProfile(); } }
