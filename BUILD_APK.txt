@@ -1,0 +1,14 @@
+INSTRUCCIONES PARA GENERAR APK (USANDO CAPACITOR + ANDROID STUDIO)
+1. Instala Node.js y npm, instala Capacitor:
+   npm i -g @capacitor/cli
+2. Crea carpeta de proyecto, copia los archivos de la PWA a ./www
+3. Inicializa Capacitor:
+   npx cap init club-caimaneros com.example.caimaneros --web-dir=www
+4. Agrega Android:
+   npx cap add android
+5. Abre Android Studio:
+   npx cap open android
+6. Compila APK en Android Studio: Build -> Build Bundle(s) / APK(s) -> Build APK(s)
+7. Firma y distribuye según tus políticas.
+
+NOTA: Aquí no puedo compilar el APK por limitaciones del entorno. Te entrego instrucciones y el paquete listo.

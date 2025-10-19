@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Club Caimaneros</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="splash" class="splash">
+    <img src="assets/logo.jpg" alt="logo" id="splash-logo">
+    <h1>Club Caimaneros</h1>
+    <p class="tag">“Pasión, disciplina y trabajo en equipo”</p>
+    <button id="enter-btn">Entrar al sistema</button>
+  </div>
+  <div id="app" class="app" style="display:none;">
+    <header>
+      <div class="left"><img src="assets/logo.jpg" class="icon"> <span id="app-title">Club Caimaneros</span></div>
+      <div class="right"><span id="user-info"></span> <button id="logout-btn" class="small">Cerrar sesión</button></div>
+    </header>
+    <nav id="nav" class="nav" style="display:none;">
+      <button data-view="dashboard">Panel</button>
+      <button data-view="athletes">Deportistas</button>
+      <button data-view="attendance">Asistencia</button>
+      <button data-view="payments">Pagos</button>
+      <button data-view="messages">Mensajes</button>
+      <button data-view="settings">Ajustes</button>
+    </nav>
+    <main id="main">
+      <section id="view-auth" class="view">
+        <div class="card">
+          <h2>Iniciar sesión</h2>
+          <form id="login-form">
+            <input id="login-email" placeholder="Correo o usuario" required>
+            <input id="login-password" type="password" placeholder="Contraseña" required>
+            <select id="login-role"><option value="admin">Administrador</option><option value="trainer">Entrenador</option><option value="player">Deportista</option></select>
+            <button type="submit">Entrar</button>
+          </form>
+          <hr>
+          <h3>Registro - Deportista</h3>
+          <form id="register-form">
+            <input id="reg-name" placeholder="Nombre completo" required>
+            <input id="reg-id" placeholder="Documento / ID">
+            <input id="reg-email" type="email" placeholder="Correo" required>
+            <input id="reg-password" type="password" placeholder="Contraseña" required>
+            <button type="submit">Registrarme (pendiente aprobación)</button>
+          </form>
+        </div>
+      </section>
+      <section id="view-dashboard" class="view" style="display:none;">
+        <h2>Panel</h2>
+        <div class="grid">
+          <div class="card stat"><h3>Total deportistas</h3><div id="stat-athletes">0</div></div>
+          <div class="card stat"><h3>Asistencia promedio (mes)</h3><div id="stat-attavg">0%</div></div>
+          <div class="card stat"><h3>Pagos aprobados (total)</h3><div id="stat-payments">$0</div></div>
+        </div>
+        <div class="charts">
+          <canvas id="chart-attendance" height="180"></canvas>
+          <canvas id="chart-payments" height="180"></canvas>
+        </div>
+      </section>
+      <section id="view-athletes" class="view" style="display:none;">
+        <h2>Deportistas</h2>
+        <div class="card">
+          <form id="athlete-form" style="display:flex;gap:8px;flex-wrap:wrap">
+            <input id="athlete-name" placeholder="Nombre" required>
+            <input id="athlete-id" placeholder="Documento/ID">
+            <select id="athlete-trainer"><option value="">Asignar entrenador (opcional)</option></select>
+            <button id="athlete-add" type="button">Agregar</button>
+          </form>
+          <ul id="athlete-list"></ul>
+        </div>
+      </section>
+      <section id="view-attendance" class="view" style="display:none;">
+        <h2>Asistencia</h2>
+        <label>Fecha: <input type="date" id="att-date"></label>
+        <button id="load-att">Cargar</button>
+        <div id="attendance-area"></div>
+      </section>
+      <section id="view-payments" class="view" style="display:none;">
+        <h2>Pagos</h2>
+        <div id="payments-area"></div>
+        <hr>
+        <h3>Subir comprobante (deportista)</h3>
+        <form id="upload-proof-form">
+          <input type="file" id="proof-file" accept="image/*">
+          <input type="date" id="proof-date">
+          <button type="submit">Subir comprobante</button>
+        </form>
+        <h4>Comprobantes pendientes</h4>
+        <ul id="proofs-list"></ul>
+      </section>
+      <section id="view-messages" class="view" style="display:none;">
+        <h2>Mensajes</h2>
+        <form id="message-form"><textarea id="message-text" placeholder="Mensaje..." required></textarea><button>Enviar</button></form>
+        <ul id="message-list"></ul>
+      </section>
+      <section id="view-settings" class="view" style="display:none;">
+        <h2>Ajustes & Contacto</h2>
+        <div class="card">
+          <h3>Contacto</h3>
+          <p>Club Caimaneros<br>caimanerosbiz@gmail.com<br>+57 314 422 1984</p>
+          <hr>
+          <h3>Exportar / Importar datos</h3>
+          <button id="export-btn">Exportar JSON</button>
+          <input type="file" id="import-file" accept="application/json">
+          <button id="import-btn">Importar JSON</button>
+          <hr>
+          <button id="clear-data">Limpiar datos (borrar todo)</button>
+        </div>
+      </section>
+      <section id="view-approvals" class="view" style="display:none;">
+        <h2>Aprobaciones</h2>
+        <div class="card">
+          <h3>Usuarios pendientes</h3>
+          <ul id="pending-users"></ul>
+          <h3>Comprobantes pendientes</h3>
+          <ul id="pending-proofs"></ul>
+        </div>
+      </section>
+      <section id="view-profile" class="view" style="display:none;">
+        <h2>Mi perfil</h2>
+        <div id="profile-area"></div>
+      </section>
+    </main>
+    <footer>
+      <small>© 2025 Club Caimaneros • caimanerosbiz@gmail.com • +57 314 422 1984</small>
+    </footer>
+  </div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
