@@ -1,61 +1,155 @@
-// Club Caimaneros - app.js (client-side only, stores data in localStorage)
-// Roles: admin, trainer, player
-const STORAGE_KEY = 'club_caimaneros_v3';
-let state = {
-  users: [],
-  athletes: [],
-  attendance: {},
-  messages: [],
-  payments: [],
-};
-const ADMIN_INIT = {id:'admin', email:'admin', name:'Administrador', password:'caimaneros2025', role:'admin', approved:true};
+// Club Caimaneros - final app.js (admin preloaded with admin@caimaneros.com)
+const STORAGE_KEY = 'club_caimaneros_release_v1';
+let state = { users: [], athletes: [], attendance: {}, messages: [], payments: [] };
+const ADMIN_INIT = { id: 'admin01', email: 'admin@caimaneros.com', name: 'Administrador', password: 'caimaneros2025', role: 'admin', approved: true };
 
 function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
 function load(){ const raw = localStorage.getItem(STORAGE_KEY); if(raw) state = JSON.parse(raw); else { state.users = [ADMIN_INIT]; save(); } }
-function uid(prefix='id'){ return prefix+Math.random().toString(36).slice(2,9); }
-
+function uid(p='id'){ return p+Math.random().toString(36).slice(2,9); }
 function $(s){ return document.querySelector(s); }
-function $a(s){ return document.querySelectorAll(s); }
-function showView(name){
-  document.querySelectorAll('.view').forEach(v=> v.style.display='none');
-  const map = {'auth':'view-auth','dashboard':'view-dashboard','athletes':'view-athletes','attendance':'view-attendance','payments':'view-payments','messages':'view-messages','settings':'view-settings','approvals':'view-approvals','profile':'view-profile'};
-  const id = map[name] || 'view-auth';
-  document.getElementById(id).style.display='';
+
+// Build UI into main (to keep file small here)
+function buildUI(){
+  const main = document.getElementById('main');
+  main.innerHTML = `
+  <!-- Auth -->
+  <section id="view-auth" class="view card">
+    <h2>Iniciar sesión</h2>
+    <form id="login-form">
+      <input id="login-email" placeholder="Correo o usuario" required>
+      <input id="login-password" type="password" placeholder="Contraseña" required>
+      <select id="login-role"><option value="admin">Administrador</option><option value="trainer">Entrenador</option><option value="player">Deportista</option></select>
+      <button type="submit">Entrar</button>
+    </form>
+    <hr>
+    <h3>Registro - Deportista</h3>
+    <form id="register-form">
+      <input id="reg-name" placeholder="Nombre completo" required>
+      <input id="reg-id" placeholder="Documento / ID">
+      <input id="reg-email" type="email" placeholder="Correo" required>
+      <input id="reg-password" type="password" placeholder="Contraseña" required>
+      <button type="submit">Registrarme (pendiente aprobación)</button>
+    </form>
+  </section>
+
+  <!-- Dashboard -->
+  <section id="view-dashboard" class="view" style="display:none;">
+    <h2>Panel</h2>
+    <div class="grid">
+      <div class="card stat"><h3>Total deportistas</h3><div id="stat-athletes">0</div></div>
+      <div class="card stat"><h3>Asistencia promedio (mes)</h3><div id="stat-attavg">0%</div></div>
+      <div class="card stat"><h3>Pagos aprobados (total)</h3><div id="stat-payments">$0</div></div>
+    </div>
+    <div class="charts">
+      <canvas id="chart-attendance" height="180"></canvas>
+      <canvas id="chart-payments" height="180"></canvas>
+    </div>
+  </section>
+
+  <!-- Athletes -->
+  <section id="view-athletes" class="view" style="display:none;">
+    <h2>Deportistas</h2>
+    <div class="card">
+      <form id="athlete-form" style="display:flex;gap:8px;flex-wrap:wrap">
+        <input id="athlete-name" placeholder="Nombre" required>
+        <input id="athlete-id" placeholder="Documento/ID">
+        <select id="athlete-trainer"><option value="">Asignar entrenador (opcional)</option></select>
+        <button id="athlete-add" type="button">Agregar</button>
+      </form>
+      <ul id="athlete-list"></ul>
+    </div>
+  </section>
+
+  <!-- Attendance -->
+  <section id="view-attendance" class="view" style="display:none;">
+    <h2>Asistencia</h2>
+    <label>Fecha: <input type="date" id="att-date"></label>
+    <button id="load-att">Cargar</button>
+    <div id="attendance-area"></div>
+  </section>
+
+  <!-- Payments -->
+  <section id="view-payments" class="view" style="display:none;">
+    <h2>Pagos</h2>
+    <div id="payments-area"></div>
+    <hr>
+    <h3>Subir comprobante (deportista)</h3>
+    <form id="upload-proof-form">
+      <input type="file" id="proof-file" accept="image/*">
+      <input type="date" id="proof-date">
+      <button type="submit">Subir comprobante</button>
+    </form>
+    <h4>Comprobantes pendientes</h4>
+    <ul id="proofs-list"></ul>
+  </section>
+
+  <!-- Messages -->
+  <section id="view-messages" class="view" style="display:none;">
+    <h2>Mensajes</h2>
+    <form id="message-form"><textarea id="message-text" placeholder="Mensaje..." required></textarea><button>Enviar</button></form>
+    <ul id="message-list"></ul>
+  </section>
+
+  <!-- Settings -->
+  <section id="view-settings" class="view" style="display:none;">
+    <h2>Ajustes & Contacto</h2>
+    <div class="card">
+      <h3>Contacto</h3>
+      <p>Club Caimaneros<br>caimanerosbiz@gmail.com<br>+57 314 422 1984</p>
+      <hr>
+      <h3>Exportar / Importar datos</h3>
+      <button id="export-btn">Exportar JSON</button>
+      <input type="file" id="import-file" accept="application/json">
+      <button id="import-btn">Importar JSON</button>
+      <hr>
+      <h3>Cambiar contraseña (usuario actual)</h3>
+      <form id="change-pass-form">
+        <input type="password" id="old-pass" placeholder="Contraseña actual" required>
+        <input type="password" id="new-pass" placeholder="Nueva contraseña" required>
+        <button type="submit">Cambiar contraseña</button>
+      </form>
+      <hr>
+      <button id="clear-data">Limpiar datos (borrar todo)</button>
+    </div>
+  </section>
+
+  <!-- Approvals -->
+  <section id="view-approvals" class="view" style="display:none;">
+    <h2>Aprobaciones</h2>
+    <div class="card">
+      <h3>Usuarios pendientes</h3>
+      <ul id="pending-users"></ul>
+      <h3>Comprobantes pendientes</h3>
+      <ul id="pending-proofs"></ul>
+    </div>
+  </section>
+
+  <!-- Profile -->
+  <section id="view-profile" class="view" style="display:none;">
+    <h2>Mi perfil</h2>
+    <div id="profile-area"></div>
+  </section>
+  `;
+}
+
+function init(){
+  load();
+  buildUI();
+  const cur = localStorage.getItem('club_current');
+  if(cur) currentUser = state.users.find(u=>u.id===cur) || null;
+  setUserUI();
+  bindUI();
+  refreshAll();
+  if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
 }
 
 let currentUser = null;
-function setUserUI(){
-  if(currentUser){
-    document.getElementById('app').style.display='block';
-    document.getElementById('splash').style.display='none';
-    document.getElementById('nav').style.display='flex';
-    document.getElementById('user-info').textContent = `${currentUser.name} (${currentUser.role})`;
-  } else {
-    document.getElementById('app').style.display='none';
-    document.getElementById('splash').style.display='block';
-    document.getElementById('nav').style.display='none';
-  }
-}
+function setUserUI(){ if(currentUser){ document.getElementById('app').style.display='block'; document.getElementById('splash').style.display='none'; document.getElementById('nav').style.display='flex'; document.getElementById('user-info').textContent = `${currentUser.name} (${currentUser.role})`; } else { document.getElementById('app').style.display='none'; document.getElementById('splash').style.display='block'; document.getElementById('nav').style.display='none'; } }
 
-function login(emailOrUser, password, role){
-  const u = state.users.find(x=> (x.email===emailOrUser||x.id===emailOrUser) && x.role===role);
-  if(!u) return {ok:false,msg:'Usuario no encontrado para ese rol'};
-  if(!u.approved) return {ok:false,msg:'Cuenta pendiente de aprobación'};
-  if(u.password !== password) return {ok:false,msg:'Contraseña incorrecta'};
-  currentUser = u;
-  localStorage.setItem('club_current', u.id);
-  return {ok:true};
-}
-
+function login(emailOrUser, password, role){ const u = state.users.find(x=> (x.email===emailOrUser||x.id===emailOrUser) && x.role===role); if(!u) return {ok:false,msg:'Usuario no encontrado para ese rol'}; if(!u.approved) return {ok:false,msg:'Cuenta pendiente de aprobación'}; if(u.password !== password) return {ok:false,msg:'Contraseña incorrecta'}; currentUser = u; localStorage.setItem('club_current', u.id); return {ok:true}; }
 function logout(){ currentUser = null; localStorage.removeItem('club_current'); setUserUI(); showView('auth'); }
 
-function registerPlayer(name, doc, email, password){
-  if(state.users.find(u=>u.email===email)) return {ok:false,msg:'Correo ya registrado'};
-  const u = {id: uid('u'), email, name, password, role:'player', approved:false, trainerId:null};
-  state.users.push(u); save(); return {ok:true,msg:'Registrado. Esperando aprobación del administrador.'};
-}
-
-window.addEventListener('load', ()=>{ load(); const cur = localStorage.getItem('club_current'); if(cur) currentUser = state.users.find(u=>u.id===cur) || null; setUserUI(); bindUI(); refreshAll(); if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+function registerPlayer(name, doc, email, password){ if(state.users.find(u=>u.email===email)) return {ok:false,msg:'Correo ya registrado'}; const u = {id: uid('u'), email, name, password, role:'player', approved:false, trainerId:null}; state.users.push(u); save(); return {ok:true,msg:'Registrado. Esperando aprobación del administrador.'}; }
 
 function bindUI(){
   document.getElementById('enter-btn').addEventListener('click', ()=> { document.getElementById('splash').style.display='none'; document.getElementById('app').style.display='block'; showView('auth'); });
@@ -74,7 +168,7 @@ function bindUI(){
 }
 
 function navigateAfterLogin(){ if(currentUser.role==='admin') { showView('dashboard'); renderDashboard(); } else if(currentUser.role==='trainer'){ showView('athletes'); renderAthletes(); } else { showView('profile'); renderProfile(); } }
-
+function showView(name){ document.querySelectorAll('.view').forEach(v=> v.style.display='none'); const map={'auth':'view-auth','dashboard':'view-dashboard','athletes':'view-athletes','attendance':'view-attendance','payments':'view-payments','messages':'view-messages','settings':'view-settings','approvals':'view-approvals','profile':'view-profile'}; const id=map[name]||'view-auth'; document.getElementById(id).style.display=''; }
 function refreshAll(){ renderAthletes(); renderMessages(); renderPayments(); renderDashboard(); refreshApprovals(); renderAthleteTrainerOptions(); }
 function renderAthletes(){ const ul = document.getElementById('athlete-list'); ul.innerHTML=''; state.athletes.forEach(a=>{ if(currentUser && currentUser.role==='trainer' && a.trainerId!==currentUser.id) return; const li = document.createElement('li'); li.innerHTML = `<div><strong>${a.name}</strong> ${a.doc?('• '+a.doc):''}</div><div>${a.trainerId?('Entr: '+(state.users.find(u=>u.id===a.trainerId)||{name:'(sin)'}).name):''} <button class="small action-edit" data-id="${a.id}">Editar</button> <button class="small action-del" data-id="${a.id}">Eliminar</button></div>`; ul.appendChild(li); }); ul.querySelectorAll('.action-del').forEach(b=> b.addEventListener('click', ()=>{ if(!currentUser || currentUser.role!=='admin') return alert('Solo administrador'); const id = b.dataset.id; state.athletes = state.athletes.filter(x=>x.id!==id); save(); renderAthletes(); renderDashboard(); })); renderAthleteTrainerOptions(); }
 function renderMessages(){ const ul = document.getElementById('message-list'); ul.innerHTML=''; state.messages.forEach(m=>{ const li = document.createElement('li'); li.innerHTML = `<div><strong>${m.from}</strong> (${m.role})<div>${m.text}</div></div><div><small>${new Date(m.ts).toLocaleString()}</small></div>`; ul.appendChild(li); }); }
@@ -88,3 +182,4 @@ function createTrainer(name,email,password){ if(state.users.find(u=>u.email===em
 window.createTrainer = createTrainer; window.state = state;
 function ensureDemo(){ if(!state.users.find(u=>u.role==='trainer')){ state.users.push({id:uid('u'), email:'ent1@caim.com', name:'Entrenador 1', password:'ent1', role:'trainer', approved:true}); save(); } }
 ensureDemo();
+init();
