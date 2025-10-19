@@ -1,18 +1,16 @@
-// Club Caimaneros - final app.js (admin preloaded with admin@caimaneros.com)
-const STORAGE_KEY = 'club_caimaneros_release_v1';
+// Club Caimaneros - vFinal app.js (admin preloaded)
+const STORAGE_KEY = 'club_caimaneros_vfinal_v1';
 let state = { users: [], athletes: [], attendance: {}, messages: [], payments: [] };
-const ADMIN_INIT = { id: 'admin01', email: 'admin@caimaneros.com', name: 'Administrador', password: 'caimaneros2025', role: 'admin', approved: true };
+const ADMIN_INIT = { id: 'admin_vfinal', email: 'admin@caimaneros.com', name: 'Administrador General', password: 'caimaneros2025', role: 'admin', approved: true };
 
 function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
 function load(){ const raw = localStorage.getItem(STORAGE_KEY); if(raw) state = JSON.parse(raw); else { state.users = [ADMIN_INIT]; save(); } }
 function uid(p='id'){ return p+Math.random().toString(36).slice(2,9); }
 function $(s){ return document.querySelector(s); }
 
-// Build UI into main (to keep file small here)
 function buildUI(){
   const main = document.getElementById('main');
   main.innerHTML = `
-  <!-- Auth -->
   <section id="view-auth" class="view card">
     <h2>Iniciar sesión</h2>
     <form id="login-form">
@@ -32,7 +30,6 @@ function buildUI(){
     </form>
   </section>
 
-  <!-- Dashboard -->
   <section id="view-dashboard" class="view" style="display:none;">
     <h2>Panel</h2>
     <div class="grid">
@@ -46,7 +43,6 @@ function buildUI(){
     </div>
   </section>
 
-  <!-- Athletes -->
   <section id="view-athletes" class="view" style="display:none;">
     <h2>Deportistas</h2>
     <div class="card">
@@ -60,7 +56,6 @@ function buildUI(){
     </div>
   </section>
 
-  <!-- Attendance -->
   <section id="view-attendance" class="view" style="display:none;">
     <h2>Asistencia</h2>
     <label>Fecha: <input type="date" id="att-date"></label>
@@ -68,7 +63,6 @@ function buildUI(){
     <div id="attendance-area"></div>
   </section>
 
-  <!-- Payments -->
   <section id="view-payments" class="view" style="display:none;">
     <h2>Pagos</h2>
     <div id="payments-area"></div>
@@ -83,14 +77,12 @@ function buildUI(){
     <ul id="proofs-list"></ul>
   </section>
 
-  <!-- Messages -->
   <section id="view-messages" class="view" style="display:none;">
     <h2>Mensajes</h2>
     <form id="message-form"><textarea id="message-text" placeholder="Mensaje..." required></textarea><button>Enviar</button></form>
     <ul id="message-list"></ul>
   </section>
 
-  <!-- Settings -->
   <section id="view-settings" class="view" style="display:none;">
     <h2>Ajustes & Contacto</h2>
     <div class="card">
@@ -113,7 +105,6 @@ function buildUI(){
     </div>
   </section>
 
-  <!-- Approvals -->
   <section id="view-approvals" class="view" style="display:none;">
     <h2>Aprobaciones</h2>
     <div class="card">
@@ -124,7 +115,6 @@ function buildUI(){
     </div>
   </section>
 
-  <!-- Profile -->
   <section id="view-profile" class="view" style="display:none;">
     <h2>Mi perfil</h2>
     <div id="profile-area"></div>
@@ -132,16 +122,7 @@ function buildUI(){
   `;
 }
 
-function init(){
-  load();
-  buildUI();
-  const cur = localStorage.getItem('club_current');
-  if(cur) currentUser = state.users.find(u=>u.id===cur) || null;
-  setUserUI();
-  bindUI();
-  refreshAll();
-  if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
-}
+function init(){ load(); buildUI(); const cur = localStorage.getItem('club_current'); if(cur) currentUser = state.users.find(u=>u.id===cur) || null; setUserUI(); bindUI(); refreshAll(); if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{}); }
 
 let currentUser = null;
 function setUserUI(){ if(currentUser){ document.getElementById('app').style.display='block'; document.getElementById('splash').style.display='none'; document.getElementById('nav').style.display='flex'; document.getElementById('user-info').textContent = `${currentUser.name} (${currentUser.role})`; } else { document.getElementById('app').style.display='none'; document.getElementById('splash').style.display='block'; document.getElementById('nav').style.display='none'; } }

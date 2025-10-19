@@ -1,11 +1,5 @@
-Club Caimaneros - Versión PWA con admin precargado
-Incluye: admin inicial, roles (admin/trainer/player), aprobación de cuentas, subida de comprobantes (imagen), panel con gráficos, export/import.
 
-Cómo usar:
-1) Descomprime y sube los archivos a un hosting estático (GitHub Pages, Netlify, Vercel).
-2) Usuario administrador inicial:
-   usuario: admin
-   contraseña: caimaneros2025
-3) Los entrenadores deben ser creados por el administrador (usar consola createTrainer o UI futura).
-4) Deportistas se registran desde la app y quedan en estado 'pendiente' hasta la aprobación del admin.
-5) Para crear APK: sigue las instrucciones en BUILD_APK.txt
+Club Caimaneros - Versión Final (vFinal)
+Instrucciones rápidas:
+1) Descomprime y sube estos archivos a GitHub Pages o abre index.html en tu navegador.
+2) Admin inicial: admin@caimaneros.com / caimaneros2025
